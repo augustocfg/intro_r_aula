@@ -1,0 +1,257 @@
+---
+title: "Introdução ao R para Economistas"
+author: 'Augusto César de Freitas Gurgel'
+format: revealjs
+theme: serif
+editor: visual
+---
+
+
+
+## O que é R?
+
+::::: columns
+::: {.column width="60%"}
+
+-   O R é uma linguagem de programação orientada para manipulação, análise e visualização de dados.
+
+-   É instalado pelo site\
+    <https://cran.r-project.org>
+:::
+
+::: {.column width="40%"}
+![](R_logo.png){width="300"}
+:::
+:::::
+
+## O que é R?
+
+::::: columns
+::: {.column width="60%"}
+-   Apesar de ser um programa completo, utilizaremos o RStudio, IDE fornecida pela Posit para um uso mais intuitivo e amigável ao usuário.
+-   Pode ser instalado pelo endereço <https://posit.co/download/rstudio-desktop/>
+:::
+
+::: {.column width="40%"}
+![](rstudio_logo.png){width="300"}
+:::
+:::::
+
+## Interface
+
+![](interface_R.jpg){fig-align="center"}
+
+## Por que usar o R?
+
+-   Possuir a habilidade de analisar e manipular os dados é crucial para um economista. O ato de analisar os dados nos permite testar hipóteses da teoria econômica, mensurar impactos, criar projetos, prever e descrever os possíveis cenários, auxiliar no processo de tomada de decisões, entre outras possibilidades.
+-   Não obstante, o R é um software que auxiliar na comunicação com o interlocutor, sendo possível criar relatórios, gráficos e aplicativos que demonstram uma forma mais palatável a relação entre os nossos objetos de estudo.
+
+## R como calculadora
+
+-   Assim como outras linguagens, o R é capaz de fazer operações básicas:
+
+```{r,echo=TRUE}
+operações <- c(3+5, 5-3, 3*5,15/3, 15%%3, 3^3, sqrt(25)) 
+#Soma, Subtração, Multiplicação, Divisão, Resto da Divisão, Exponenciação e Raiz Quadrada
+operações
+```
+
+-   Até mesmo as operações de Cálculo:
+
+```{r,echo=TRUE}
+função <- expression(x^(0.3) * y^(0.7))
+D(função,name = 'x') #Calculando a derivada da nossa função em relação a X.
+```
+
+## R como calculadora
+
+-   Mas como podemos realmente tornar o uso da nossa ferramenta para fins mais complexos?
+-   Dentre as possibilidades, vamos nos limitar a 2 exemplos.
+
+## Equilíbrio Geral
+
+::::: columns
+::: {.column width="50%"}
+-   Imagine um feira numa ilha remota com apenas 2 habitantes, Elena e Armínio.
+-   Nessa ilha, apenas 2 bens são produzidos: Coco e Peixe.
+:::
+
+::: {.column width="50%"}
+![Noble Island (AUS) - Ryan Moody Fishing](island.jpg){fig-align="center"}
+:::
+:::::
+
+## Equilíbrio Geral
+
+-   Elena possui uma grande habilidade em obter cocos, porém prefere peixe.
+-   Armínio é um ótimo pescador, porém prefere coco.
+-   As preferências de cada um podem ser representadas por funções utilidades:
+
+```{r,message=FALSE,echo=FALSE}
+library(latex2exp)
+ plot(TeX( paste0('$U(x,y) = x^{alpha}y^{beta}$ '),italic = T),cex = 5)
+
+```
+
+## Equilíbrio Geral
+
+::::: columns
+::: {.column width="70%"}
+-   Utilidade pode ser entendido como o nível de satisfação do indivíduo.
+-   O orçamento de Elena e Armínio são os próprios bens que eles coletaram da natureza.
+-   Então, de acordo com o orçamento dos indivíduos e suas preferências, qual seria o melhor resultado possível para os dois?
+:::
+
+::: {.column width="30%"}
+![](handshake.jpg){fig-align="right"}
+:::
+:::::
+
+## Modelagem e Teste de Hipótese
+
+-   Agora, vamos trabalhar com uma base de dados *cross-section* de 526 trabalhadores no ano de 1976.
+
+```{r}
+library(wooldridge)
+library(reactable)
+head(wooldridge::wage1) 
+```
+
+
+## Modelagem e Teste de Hipótese
+
+- Com essa base de dados, queremos entender as relações entre os dados. Digamos que queremos entender os determinantes do salário de cada trabalhador.
+
+```{r}
+#| fig-align: center
+library(ggplot2)
+wage1 |> 
+  ggplot() +
+  geom_point(aes(educ,wage)) +
+  theme_classic() +
+  labs(x ='Anos de estudo',
+       y= 'Salário',
+       title = 'Salário x Anos de Estudo')
+```
+
+## Modelagem e Teste de Hipótese
+
+- Queremos verificar a teoria de que anos de estudo influenciam o quanto de salário que o trabalhador vai ganhar.
+- Dessa forma, criaremos um modelo de regressão linear: $wage = \beta_0 + \beta_1(educ)$ e testaremos a hipótese do modelo.
+
+```{r,echo = TRUE}
+lm(wage ~ educ,data = wage1) -> modelo
+
+```
+## Modelagem e Teste de Hipótese
+
+
+```{r}
+
+library(dplyr)
+#| fig-align: center
+wage1 |> 
+  mutate(meu_modelo = predict(modelo)) |> 
+  ggplot() +
+  geom_point(aes(educ,wage)) +
+  geom_line(aes(educ,meu_modelo), color = 'orange', size = 1) +
+  theme_classic() +
+  labs(x ='Anos de estudo',
+       y= 'Salário',
+       title = 'Salário x Anos de Estudo')
+
+```
+
+
+## Modelagem e Teste de Hipótese
+
+- Com a função *summary()*, podemos ter várias métricas e podemos testar as hipóteses do nosso modelo.
+```{r,echo=TRUE}
+
+summary(modelo)
+
+```
+
+## Modelagem e Teste de Hipótese
+
+- Mas seria o nosso modelo o modelo definitivo? Poderíamos melhorar-lo?
+- O R possui vários pacotes com testes estatísticos que podem nos ajudar a responder, como os testes de normalidade.
+
+```{r,echo=TRUE}
+
+stats::shapiro.test(modelo$residuals)
+
+```
+
+
+## Modelagem e Teste de Hipótese
+
+- Mas seria o nosso modelo o modelo definitivo? Poderíamos melhorar-lo?
+- O R possui vários pacotes com testes estatísticos que podem nos ajudar a responder, como os testes de normalidade.
+
+```{r,echo=TRUE}
+
+stats::Box.test(modelo$residuals,type = 'Ljung-Box')
+
+```
+
+
+
+## Modelagem e Teste de Hipótese
+- E os testes de heterocedasticidade:
+```{r,echo=TRUE}
+skedastic::white(modelo)
+skedastic::breusch_pagan(modelo)
+```
+
+## Modelagem e Teste de Hipótese
+- Pelas informações que obtivemos do R, podemos fazer um novo modelo que capture melhor a dinâmica dos dados.
+- $log(wage) = \beta_0 + \beta_1(educ) + \beta_2(exper) + \beta_3(tenure)$
+```{r}
+modelo_2 <- lm(log(wage) ~ educ + exper + tenure, wage1)
+
+summary(modelo_2)
+```
+
+
+## Modelagem e Teste de Hipótese
+```{r}
+#| fig-align: center
+wage1 |> 
+  mutate(meu_modelo = predict(modelo_2)) |> 
+  ggplot() +
+  geom_point(aes(educ,log(wage))) +
+  geom_line(aes(educ,meu_modelo), color = 'orange', size = 1) +
+  theme_classic() +
+  labs(x ='Anos de estudo',
+       y= 'Salário (log)',
+       title = 'Salário x Anos de Estudo')
+```
+
+## Pacotes Usados
+- ggplot2
+- dplyr
+- wooldridge
+- shiny
+- bs4Dash
+- stats
+- skedastic
+
+## Referências 
+
+![KLEIBER, C. e ZELEIS, A. (2008) “Applied Econometrics with R”, Springer, New York](appliedeconometricsbook.png){}
+
+## Referências 
+
+![MURRELL, P. (2018) “R Graphics”,  Taylor & Francis, Boca Raton.](rgraphicsbook.png){}
+
+## Referências 
+
+![SPECTOR, P. (2008) “Data manipulation with R”, Springer, New York.](datamanipbook.png){}
+
+## Obrigado! {.center}
+```{css}
+.center h2 {
+  text-align: center;
+}
+```
